@@ -5,40 +5,24 @@ public class Card implements Comparable<Card>{
 	private Suit suit;
 	private int number;
 	
+	//コンストラクタ
+	protected Card(Suit suit, int number) {
+		this.suit = suit;
+		this.number = number;
+	}
 	
-	public Card(Suit suit, int number) {
-		this.suit = suit;
-		this.number = number;
-	}
-
-	protected Suit getSuit() {
-		return suit;
-	}
-
-	protected void setSuit(Suit suit) {
-		this.suit = suit;
-	}
-
-	protected int getNumber() {
-		return number;
-	}
-
-	protected void setNumber(int number) {
-		this.number = number;
-	}
-
 	@Override
-	//オーバーライドするときはアクセス制限を狭めることはできない。
+	//！：オーバーライドするときはアクセス制限を狭めることはできない。
 	public String toString() {
 		return this.suit.getSuitName() + this.number;
 	}
 	
-	//等価の比較（Stringとintでの等価比較方法の差に注意）
 	@Override
+	//等価の比較（Stringとintでの等価比較方法の差に注意）
 	public boolean equals(Object obj) {
 		if(obj instanceof Card) {
-			Card compareeCard = (Card)obj;
-			if(this.suit.equals(compareeCard.suit) && this.number == compareeCard.number) {
+			Card anotherCard = (Card)obj;
+			if(this.suit.equals(anotherCard.suit) && this.number == anotherCard.number) {
 				return true;
 			}else {
 				return false;
@@ -49,16 +33,34 @@ public class Card implements Comparable<Card>{
 	}
 	
 	@Override
-	//comparer＞compareeの場合、正の数が出力される。
-	public int compareTo(Card compareeCard) {
-		if(this.number > compareeCard.number) {
+	//comparer＞anotherCardの場合、正の数が出力される。
+	public int compareTo(Card anotherCard) {
+		if(this.number > anotherCard.number) {
 			return 1;
-		}else if(this.number < compareeCard.number) {
+		}else if(this.number < anotherCard.number) {
 			return -1;
 		}else{
-			return this.suit.compareTo(compareeCard.suit);
+			return this.suit.compareTo(anotherCard.suit);
 		}
 	}
+	
+	
+	//---------------------------------------------------------------------------------------
+	protected Suit getSuit() {
+		return suit;
+	}
+	protected void setSuit(Suit suit) {
+		this.suit = suit;
+	}
+
+	protected int getNumber() {
+		return number;
+	}
+	protected void setNumber(int number) {
+		this.number = number;
+	}
+
+
 	
 
 	

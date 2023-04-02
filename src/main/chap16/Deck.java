@@ -6,59 +6,66 @@ import java.util.Random;
 public class Deck {
 	
 	//Suit型（列挙）の配列
-	Suit[] suits = Suit.values();
+	private Suit[] suits = Suit.values();
 	
 	//Remark：配列の枠をnewしているだけで、配列の要素はnewしていないため、コンストラクタないでnewが必要となる。
 	Card[][] cards = new Card[4][13];
-	boolean isNotUsed[][] = new boolean[4][13];
+	private boolean isUsed[][] = new boolean[4][13];
 	
 	//コンストラクタ
 	public Deck() {
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < 13; j++) {
 				this.cards[i][j] = new Card(suits[i], j + 1);
-				this.isNotUsed[i][j] = true;
+				this.isUsed[i][j] = false;
 			}
 		}
 		System.out.println("---カードデッキを準備しました。---");
 	}
 	
-	//未使用カードの枚数をカウントする
-	public int countNotUsedCard() {
+	//カードデッキのシャッフルメソッド
+	public void reset() {
+		for(int i = 0; i < 4; i++) {
+			for(int j = 0; j < 13; j++) {
+				this.isUsed[i][j] = false;
+			}
+		}
+		System.out.println("---デッキをシャッフルしました。---");
+	}
+	
+	//ランダムな未使用のカードを一枚引くメソッド
+	public Card draw() {
+		Random random = new Random();
+		int rand;
+		//未使用カードが0枚の場合、カードデッキをシャッフルする。
+		//！：これをしないと、whileがいつまでもbreakできなくなる。
+		if(this.countNotUsedCard() == 0) {
+			System.out.println("---カードがないためデッキをシャッフルします。---");
+			this.reset();
+		}
+		
+		while(true) {
+			rand = random.nextInt(52);
+			if(isUsed[rand / 13][rand % 13] == false) {
+				isUsed[rand / 13][rand % 13] = true;
+				break;
+			}
+		}
+		System.out.println("---ランダムなカードを一枚引きました。---");
+		System.out.println(this.cards[rand / 13][rand % 13]);
+		return this.cards[rand / 13][rand % 13];
+	}
+	
+	//未使用カード枚数のカウントメソッド
+	private int countNotUsedCard() {
 		int notUsedCardCounter = 0;
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < 13; j++) {
-				if(this.isNotUsed[i][j] == true) {
+				if(this.isUsed[i][j] == false) {
 					notUsedCardCounter = notUsedCardCounter + 1;
 				}
 			}
 		}
 		return notUsedCardCounter;
-	}
-	
-	//カードデッキの使用状況を初期化する
-	public void reset() {
-		for(int i = 0; i < 4; i++) {
-			for(int j = 0; j < 13; j++) {
-				this.isNotUsed[i][j] = true;
-			}
-		}
-		System.out.println("---デッキをシャッフルし直しました。---");
-	}
-	
-	//ランダムな未使用のカードを一枚引くまでループする
-	public Card draw() {
-		Random random = new Random();
-		int rand;
-		while(true) {
-			rand = random.nextInt(52);
-			if(isNotUsed[rand / 13][rand % 13] == true) {
-				isNotUsed[rand / 13][rand % 13] = false;
-				break;
-			}
-		}
-		//System.out.println(this.cards[rand / 13][rand % 13]);
-		System.out.println("---ランダムなカードを一枚引きました。---");
-		return this.cards[rand / 13][rand % 13];
 	}
 }
