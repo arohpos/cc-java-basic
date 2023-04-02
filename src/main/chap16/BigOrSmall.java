@@ -1,5 +1,6 @@
 package main.chap16;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class BigOrSmall {
@@ -38,31 +39,58 @@ public class BigOrSmall {
 	//ゲーム実行メソッド
 	public void playBigOrSmall() {
 
-		//BigOrSmallを遊び続ける場合
-		while(this.isContinueBigOrSmallFlg()) {
-			
+		//BigOrSmallを遊び続ける場合の処理
+		while(this.isContinueBigOrSmallFlg()) {			
+			this.continueBetFlg = true;
 			this.alreadyOpenedCard = deck.draw();
 			this.playedTimesCounter = this.playedTimesCounter + 1;
 			this.showCurrentStatus();
 			this.inputBettedChip();
 			
-			//BETを続ける場合
+			//BETを続ける場合の処理
 			while(this.isContinueBetFlg()) {
 				this.chooseBigOrSmall();
 				this.judge();
 				this.caliculataReturnChip();
+				
 				//ゲームに勝った場合
 				if(isWinFlg() == true) {
 					this.setcurrentBettedChipNumber(this.getcurrentBettedChipNumber() * 2);//2倍をかける
 					System.out.println("獲得した" + this.getcurrentBettedChipNumber() + "枚でBETを続けますか？");
-					System.out.println("0:NO/ 1:YES");
-					//TODO:例外処理
-					//NOが入力された場合、ゲームを一度やめる
-					if(scanner.nextInt() == 0) {
-						this.setContinueBetFlg(false);
+
+					//入力チェック（半角数字であること、0か1であること）
+					while(true) {			
+						try {				
+							System.out.println("0:NO/ 1:YES");
+							int input = scanner.nextInt();
+							
+							//入力エラーがある場合
+							if(input != 0 && input != 1) {
+								throw new IllegalArgumentException("!！0/1以外の値が入力されています!！");	
+							
+							//入力エラーがない場合
+							}else {
+								//NOが入力された場合、ゲームを一度やめる
+								if(input == 0) {
+									this.setContinueBetFlg(false);		
+									//YESが入力された場合、獲得チップを元手にBETを継続する
+								}else {
+									this.setContinueBetFlg(true);
+								}
+								break;//入力チェックを元に再入力を促すループから抜ける。
+							}
+							
+						} catch (InputMismatchException e) {
+							System.out.println("!！半角数字以外が入力されています!！");
+							scanner.next();//入力バッファのクリア
+						} catch (IllegalArgumentException e) {
+							System.out.println(e.getMessage());
+						}
+					}
+					
+					//入力をもとにBETを継続するか分岐
+					if(this.isContinueBetFlg() == false) {
 						break;
-						
-					//YESが入力された場合、獲得チップを元手にBETを継続する
 					}else {
 						continue;
 					}
@@ -70,21 +98,54 @@ public class BigOrSmall {
 				//ゲームに負けた場合
 				}else {	
 					//ゲームを一度やめる
-					break;
+					this.setContinueBetFlg(false);
 				}
+				break;
 			}
 			
 			//現在所有するチップ枚数確認。0件ならば、BigOraSmallを終了する。
+			if(this.ownedChip.getOwnedChipNumber() == 0) {
+				System.out.println("チップを所有していないため、BigOrSmallを終了します。");
+				break;	
+			}
 			
 			//BigOrSmallの継続確認
-			System.out.println("現在所有しているチップで、BogOrSmallを遊び直しますか?");
-			System.out.println("0:NO/ 1:YES");
-			//TODO：例外処理
-			if(scanner.nextInt() == 0) {
-				this.setContinueBigOrSmallFlg(false);
+			System.out.println("現在所有しているチップで、BigOrSmallを遊び直しますか?");
+			
+			//入力チェック（半角数字であること、0か1であること）
+			while(true) {			
+				try {				
+					System.out.println("0:NO/ 1:YES");
+					int input = scanner.nextInt();
+					
+					//入力エラーがある場合
+					if(input != 0 && input != 1) {
+						throw new IllegalArgumentException("!！0/1以外の値が入力されています!！");			
+						
+					//入力エラーがない場合
+					}else {
+						if(input == 0) {
+							this.setContinueBigOrSmallFlg(false);
+						}else {
+							this.setContinueBigOrSmallFlg(true);
+						}
+						break;//入力チェックを元に再入力を促すループから抜ける。
+					}
+					
+				} catch (InputMismatchException e) {
+					System.out.println("!！半角数字以外が入力されています!！");
+					scanner.next();//入力バッファのクリア
+				} catch (IllegalArgumentException e) {
+					System.out.println(e.getMessage());
+				}
+			}
+			
+			//0:NOが入力された場合、ゲームをやめる。
+			if(this.isContinueBigOrSmallFlg() == false) {
 				break;
+			//1:YESが入力された場合、ゲームを初めからやり直す。
 			}else {
-				//カードをシャッフルする
+				//カードをシャッフルする。
 				this.initializeDeck();
 				continue;
 			}
@@ -98,9 +159,7 @@ public class BigOrSmall {
 	//現在所有しているチップと場に出されているカードの状態表示メソッド
 	private void showCurrentStatus() {		
 		System.out.println("■現在のチップと場に出ているカードの状況");
-		//TODO:以下2行の違いはなに？
-		//System.out.println(this.ownedChip);
-		System.out.println(this.ownedChip.toString());
+		System.out.println(this.ownedChip);
 		System.out.println("現在場に出ているカード:" + this.alreadyOpenedCard);
 		System.out.println("");
 	}	
@@ -108,9 +167,34 @@ public class BigOrSmall {
 	//BETするチップ枚数入力受付メソッド
 	private void inputBettedChip() {
 		System.out.println("■BET枚数確認");
-		System.out.println("BETする枚数を半角数字で入力してください。（最低1〜最大20）");
-		//TODO：例外処理（半角数字以外が入力されたら。1から20以外が入力されたら、所有チップよりも多かったら）
-		this.setcurrentBettedChipNumber(scanner.nextInt());
+		//入力チェック（半角数字であること、1から20であること、所有するチップ数を超えないこと）
+		while(true) {			
+			try {				
+				System.out.println("BETする枚数を半角数字で入力してください。（最低1〜最大20）");
+				int input = scanner.nextInt();
+				
+				//入力エラーがある場合
+				if(input < 1) {
+					throw new IllegalArgumentException("!！BETされたチップ数がBET可能チップ数の下限値を下回っています!！");
+				}else if(input > 20) {
+					throw new IllegalArgumentException("!！BETされたチップ数がBET可能チップ数の上限値を上回っています!！");
+				}else if(input > this.ownedChip.getOwnedChipNumber()){
+					throw new IllegalArgumentException("!！BETされたチップ数が所有するチップ数を超えています!！");	
+					
+				//入力エラーがない場合
+				}else {
+					this.setcurrentBettedChipNumber(input);					
+					break;//入力チェックを元に再入力を促すループから抜ける。
+				}
+				
+			} catch (InputMismatchException e) {
+				System.out.println("!！半角数字以外が入力されています!！");
+				scanner.next();//入力バッファのクリア
+			} catch (IllegalArgumentException e) {
+				System.out.println(e.getMessage());
+				//scanner.next();//TODO:なぜかこのエラーの場合入力バッファのクリアは不要。
+			}
+		}
 		System.out.println(this.getcurrentBettedChipNumber() + "枚がBETされました。");
 		System.out.println("");
 	}
@@ -118,14 +202,34 @@ public class BigOrSmall {
 	//BigOeSmall選択入力受付メソッド
 	private void chooseBigOrSmall() {
 		System.out.println("■Big or Small選択");
-		System.out.println("[Big or Small]0:Big/1:Small");		
-		//TODO：例外処理（半角数字以外が入力されたら0/1以外が入力されたら）
-		if(scanner.nextInt() == 1) {
-			System.out.println("Smallが選択されました。");			
-			this.setChooseSmallFlg(true);
-		}else{
-			System.out.println("Bigが選択されました。");
-			this.setChooseSmallFlg(false);
+		//入力チェック（半角数字であること、0か1であること）
+		while(true) {			
+			try {				
+				System.out.println("[Big or Small]0:Big/1:Small");		
+				int input = scanner.nextInt();
+				
+				//入力エラーがある場合
+				if(input != 0 && input != 1) {
+					throw new IllegalArgumentException("!！0/1以外の値が入力されています!！");		
+					
+				//入力エラーがない場合
+				}else {
+					if(input == 1) {
+						System.out.println("Smallが選択されました。");			
+						this.setChooseSmallFlg(true);
+					}else{
+						System.out.println("Bigが選択されました。");
+						this.setChooseSmallFlg(false);
+					}
+					break;//入力チェックを元に再入力を促すループから抜ける。
+				}
+				
+			} catch (InputMismatchException e) {
+				System.out.println("!！半角数字以外が入力されています!！");
+				scanner.next();//入力バッファのクリア
+			} catch (IllegalArgumentException e) {
+				System.out.println(e.getMessage());
+			}
 		}
 		System.out.println("");
 	}
